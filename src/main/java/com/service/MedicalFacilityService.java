@@ -6,8 +6,10 @@ import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author neelparikh
@@ -31,14 +33,31 @@ public class MedicalFacilityService implements MedicalFacilityI {
 			connection.close();
 		}
 		catch( SQLException e ) {
-			logger.error("There was an error inserting data");
-			e.printStackTrace();
+			System.out.println("There was an error inserting data");
 		}
 
 	}
 
-	public ArrayList<MedicalFacility> getAllFacilities() {
-		return null;
+	public List<MedicalFacility> getAllFacilities() {
+
+		String sql = "Select facility_id, name from Medical_Facilty";
+		List<MedicalFacility> medicalFacilities = new ArrayList<MedicalFacility>();
+		try{
+			PreparedStatement ps = connection.prepareStatement(sql);
+			ResultSet resultSet = ps.executeQuery();
+			MedicalFacility medicalFacility = new MedicalFacility();
+			while( resultSet.next() ){
+				medicalFacility.setName(resultSet.getString(2));
+				medicalFacility.setFacility_id(resultSet.getLong(1));
+				medicalFacilities.add(medicalFacility);
+			}
+
+
+		}catch( SQLException e ){
+			System.out.println("There was an error fetching data from tables" );
+		}
+		return medicalFacilities;
+
 	}
 
 }

@@ -2,9 +2,9 @@ package com.service;
 
 import com.models.MedicalFacility;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public interface MedicalFacilityI {
 	public void addFacility(MedicalFacility medicalFacility);
-	public ArrayList<MedicalFacility> getAllFacilities();
+	public List<MedicalFacility> getAllFacilities();
 }
