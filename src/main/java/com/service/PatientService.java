@@ -1,5 +1,6 @@
 package com.service;
 
+import com.GlobalConstants;
 import com.connection.MakeConnection;
 import com.models.Patient;
 
@@ -37,8 +38,45 @@ public class PatientService implements PatientI {
 		}
 		catch( SQLException e ) {
 			System.out.println("There was an error inserting patient");
-			e.printStackTrace();
 		}
 		return op;
 	}
+
+	public String getPatient(String lname, Date date, String city) {
+
+		String sql = "Select pid,fname,lname from Patients where lname = ? and dob = ?";
+
+		String fullName = "";
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement(sql);
+			preparedStatement.setString(1, lname);
+			preparedStatement.setDate(2, date);
+
+			ResultSet rs = preparedStatement.executeQuery();
+
+			if(rs.next())
+			{
+				String addressSql = "Select * from Address where pid = ? and city = ?";
+				int pid = rs.getInt(1);
+				PreparedStatement ps = connection.prepareStatement(addressSql);
+				ps.setInt(1, pid);
+				ps.setString(2, city);
+				ResultSet resultSet = ps.executeQuery();
+				if(resultSet.next()){
+					fullName = rs.getString(2) +" "+ rs.getString(3);
+					GlobalConstants.globalPid = pid;
+				}
+			}
+			preparedStatement.close();
+			connection.close();
+		}
+		catch( SQLException e ) {
+			System.out.println("There was an error while fetching data.");
+			e.printStackTrace();
+		}
+
+		return fullName;
+	}
+
+
 }
