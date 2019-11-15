@@ -20,7 +20,9 @@ import java.util.*;
 public class Runner {
 
 	private static Scanner sc = new Scanner(System.in);
-	private static Map<Integer, String> symptomMetaDataMap = new HashMap<Integer, String>();
+	private static Map<Integer, String> symptomMetaDataMap =
+			new HashMap<Integer, String>();
+
 	public static void main(String[] args) {
 		Scanner sc = new Scanner(System.in);
 /*		System.out.println("Enter facility id");
@@ -66,48 +68,63 @@ public class Runner {
 		calendar.set(1996, 10, 16);
 
 		System.out.println(new PatientService().getPatient("Parikh",
-		                                                   new Date(calendar.getTime().getTime()), "Raleigh"));
+		                                                   new Date(calendar
+		                                                   .getTime().getTime
+		                                                   ()), "Raleigh"));
 		System.out.println(new PatientService().getPatient("Parikh",
-		                                                   new Date(calendar.getTime().getTime()), "Ahmedabad"));
+		                                                   new Date(calendar
+		                                                   .getTime().getTime
+		                                                   ()), "Ahmedabad"));
 		calendar.set(1997, 10, 16);
 		System.out.println(new PatientService().getPatient("Parikh",
-		                                                   new Date(calendar.getTime().getTime()), "Ahmedabad"));
+		                                                   new Date(calendar
+		                                                   .getTime().getTime
+		                                                   ()), "Ahmedabad"));
 		System.out.println(new PatientService().getPatient("Neel",
-		                                                   new Date(calendar.getTime().getTime()), "Raleigh"));
+		                                                   new Date(calendar
+		                                                   .getTime().getTime
+		                                                   ()), "Raleigh"));
 */
 
 		signIn();
 		Map<Integer, String> symptomCountMap = displayAllSymptoms();
-
+		List<SymptomMetaData> symptomMetaDataList =
+				new ArrayList<SymptomMetaData>();
 		String str = sc.nextLine();
-		while(!("q").equals(str)) {
+		while( ! ("q").equals(str) ) {
 			SymptomMetaData symptomMetaData = new SymptomMetaData();
 			String bodyPart = "";
 			try {
 				int choice = Integer.parseInt(str);
 				String symptomId = symptomCountMap.get(choice);
+				System.out.println("**************");
+				System.out.println(symptomId);
 				String resp = sc.nextLine();
-
-				while(!("d").equals(resp)) {
+				symptomMetaData.setSymId(symptomId);
+				while( ! ("d").equals(resp) ) {
 					bodyPart = displaySymptomMetadata(symptomId);
 					resp = sc.nextLine();
 					int key = Integer.parseInt(resp);
-					displayMenu(symptomMetaData,key);
+					displayMenu(symptomMetaData, key, symptomId);
 				}
 
-
+				System.out.println(symptomMetaData.getSymId());
 			}
-			catch( Exception e )
-			{
+			catch( Exception e ) {
 				System.out.println("Enter number without any spaces");
 			}
-			if(!("").equals(bodyPart))
+			if( ! ("").equals(bodyPart) )
 				symptomMetaData.setBodyPart(bodyPart);
+
 			displayAllSymptoms();
 			str = sc.nextLine();
+			symptomMetaDataList.add(symptomMetaData);
 		}
-		new PatientVisitService().admitPatient(setPatientVisit());
-
+		int visitId =
+				new PatientVisitService().admitPatient(setPatientVisit());
+		System.out.println(symptomMetaDataList + " " + visitId);
+		new SymptomMetaDataService().addSymptomMetaData(symptomMetaDataList,
+		                                                visitId);
 	}
 
 	private static void signIn() {
@@ -118,7 +135,6 @@ public class Runner {
 		sc.nextLine();
 		System.out.println("Enter Last name: ");
 		String lname = sc.nextLine();
-		//Date of birth
 		System.out.println("Enter Date of birth in (\"mm-dd-yyyy\") format");
 		String date = sc.nextLine();
 		while( ! Validation.validateDate(date) ) {
@@ -126,8 +142,14 @@ public class Runner {
 			date = sc.nextLine();
 		}
 		Calendar calendar = Calendar.getInstance();
+
 		int[] dob = Utility.parseDate(date, "-");
-		calendar.set(dob[2], dob[0], dob[1]);
+
+		calendar.set(Calendar.MONTH, dob[0] - 1);
+		calendar.set(Calendar.YEAR, dob[2]);
+		calendar.set(Calendar.DAY_OF_MONTH, dob[1]);
+
+		System.out.println(calendar);
 		Date sqlDate = new Date(calendar.getTime().getTime());
 
 		System.out.println("Enter city:");
@@ -135,50 +157,50 @@ public class Runner {
 		System.out.println("Are you a Patient? ");
 		String isPatient = sc.nextLine();
 
-		if(("yes").equals(isPatient)) {
+		if( ("yes").equals(isPatient) ) {
 			PatientI patientI = new PatientService();
 			String response = patientI.getPatient(lname, sqlDate, city);
-			while( "".equals(response) )
-			{
+
+			while( "".equals(response) ) {
 				System.out.println("Invalid Credentials.. Please try again");
 				signIn();
 			}
 			GlobalConstants.globalLastName = response;
 			GlobalConstants.globalRole = "patient";
-			while(new PatientVisitService().isCheckedIn(GlobalConstants.globalPid, facility_id))
-			{
-				System.out.println("You are already checked-in to this faciltiy please select another facilty ID");
+			while( new PatientVisitService().isCheckedIn(GlobalConstants.globalPid, facility_id) ) {
+				System.out.println("You are already checked-in to this " +
+				                   "faciltiy please select another facilty " +
+				                   "ID");
 				facility_id = sc.nextLong();
 			}
 			GlobalConstants.globalFacilityId = facility_id;
 
 
-		}
-		else
-		{
+		} else {
 			//do staff login here
 		}
 	}
 
 	private static void displayAllFacilities()
 	{
-		List<MedicalFacility> medicalFacilities = new MedicalFacilityService().getAllFacilities();
+		List<MedicalFacility> medicalFacilities =
+				new MedicalFacilityService().getAllFacilities();
 		System.out.println("Id\t\t\tName");
-		for(MedicalFacility medicalFacility: medicalFacilities)
-		{
-			System.out.println(medicalFacility.getFacility_id()+"\t\t"+medicalFacility.getName());
+		for( MedicalFacility medicalFacility : medicalFacilities ) {
+			System.out.println(medicalFacility.getFacility_id() + "\t\t" + medicalFacility.getName());
 		}
 	}
 
 	private static Map<Integer, String> displayAllSymptoms()
 	{
-		// CHeck if the patient has already checked in or not before displaying the list
+		// CHeck if the patient has already checked in or not before
+		// displaying the list
 		List<Symptom> symptoms = new SymptomService().getAllSymptoms();
 		System.out.println("Id\t\t\tSymptom Name");
 		int count = 1;
 		Map<Integer, String> symptomCountMap = new HashMap<Integer, String>();
-		for(Symptom symptom: symptoms){
-			System.out.println(count+"\t\t\t" + symptom.getSymptomName());
+		for( Symptom symptom : symptoms ) {
+			System.out.println(count + "\t\t\t" + symptom.getSymptomName());
 			symptomCountMap.put(count, symptom.getSymptomId());
 			count++;
 		}
@@ -187,25 +209,25 @@ public class Runner {
 		return symptomCountMap;
 	}
 
-	private static String displaySymptomMetadata(String symptomId){
+	private static String displaySymptomMetadata(String symptomId) {
 		String response = new SymptomMetaDataService().isAssociated(symptomId);
 		setSymptomMetaDataMap();
-		if(response.equals(""))
-		{
+		if( response.equals("") ) {
 			System.out.println("1\t\tBody Part");
 		}
 
 
-			System.out.println("2\t\tDuration");
-			System.out.println("3\t\tRecurring");
-			System.out.println("4\t\tSeverity");
-			System.out.println("5\t\tCause");
-			System.out.println("press \"d\" when done");
-			return response;
+		System.out.println("2\t\tDuration");
+		System.out.println("3\t\tRecurring");
+		System.out.println("4\t\tSeverity");
+		System.out.println("5\t\tCause");
+		System.out.println("press \"d\" when done");
+		return response;
 
 	}
 
-	private static void displayMenu(SymptomMetaData symptomMetaData, int key){
+	private static void displayMenu(SymptomMetaData symptomMetaData, int key,
+	                                String symptomId) {
 
 		String response = symptomMetaDataMap.get(key);
 		System.out.println("Enter " + response);
@@ -224,6 +246,8 @@ public class Runner {
 				symptomMetaData.setIsRecurring(resp);
 				break;
 			case 4:
+				System.out.println("Severity scale is " +
+				                   new SeverityScaleService().getSeverityScale(symptomId));
 				resp = sc.nextLine();
 				symptomMetaData.setSeverity(resp);
 				break;
@@ -233,7 +257,8 @@ public class Runner {
 				break;
 		}
 	}
-	private static void setSymptomMetaDataMap(){
+
+	private static void setSymptomMetaDataMap() {
 		symptomMetaDataMap.put(1, "Body Part");
 		symptomMetaDataMap.put(2, "Duration");
 		symptomMetaDataMap.put(3, "isRecurring");
@@ -241,7 +266,7 @@ public class Runner {
 		symptomMetaDataMap.put(5, "Cause");
 	}
 
-	private static PatientVisit setPatientVisit(){
+	private static PatientVisit setPatientVisit() {
 		PatientVisit patientVisit = new PatientVisit();
 		patientVisit.setPid(GlobalConstants.globalPid);
 		patientVisit.setCheckIn(new Date(Calendar.getInstance().getTime().getTime()));
@@ -249,7 +274,4 @@ public class Runner {
 		patientVisit.setFacilityId(GlobalConstants.globalFacilityId);
 		return patientVisit;
 	}
-
-
-
 }

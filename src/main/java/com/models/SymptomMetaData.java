@@ -12,6 +12,17 @@ public class SymptomMetaData {
 	private String isRecurring;
 	private String cause;
 	private String severity;
+	private String symId;
+
+
+
+	public String getSymId() {
+		return symId;
+	}
+
+	public void setSymId(String symId) {
+		this.symId = symId;
+	}
 
 	public String getBodyPart() {
 		return bodyPart;
