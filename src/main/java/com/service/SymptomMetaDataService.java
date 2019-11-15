@@ -1,11 +1,14 @@
 package com.service;
 
+import com.GlobalConstants;
 import com.connection.MakeConnection;
+import com.models.SymptomMetaData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author neelparikh
@@ -34,5 +37,31 @@ public class SymptomMetaDataService implements SymptomMetaDataI{
 			System.out.println("There was an error processing query");
 		}
 		return response;
+	}
+
+	public void addSymptomMetaData(List<SymptomMetaData> symptomMetaDataList, int visitId){
+		String sql = "Insert into patients_symptom_visit(sym_id, visit_id, " +
+		             "severity, is_recurring, incident, pid, bodypart, duration) values(?,?,?,?,?,?,?,?)";
+
+		try {
+			PreparedStatement ps = connection.prepareStatement(sql);
+			for(SymptomMetaData symptomMetaData: symptomMetaDataList) {
+				ps.setString(1, symptomMetaData.getSymId());
+				ps.setInt(2, visitId);
+				ps.setString(3, symptomMetaData.getSeverity());
+				ps.setString(4, symptomMetaData.getIsRecurring());
+				ps.setString(5, symptomMetaData.getCause());
+				ps.setLong(6, GlobalConstants.globalPid);
+				ps.setString(7, symptomMetaData.getBodyPart());
+				ps.setString(8, symptomMetaData.getDuration());
+				int x = ps.executeUpdate();
+				System.out.println(x);
+			}
+
+		}
+		catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
 	}
 }
