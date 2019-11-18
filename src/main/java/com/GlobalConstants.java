@@ -11,5 +11,6 @@ public class GlobalConstants {
 	public static String globalLastName;
 	public static int globalPid;
 	public static long globalFacilityId;
+	public static long visitId;
 
 }

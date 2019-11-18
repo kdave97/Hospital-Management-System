@@ -41,4 +41,28 @@ public class StaffService implements StaffI {
 
 		return false;
 	}
+
+
+	public boolean isAllowed(String name ){
+		String sql = "select count(*) from Staff where name = ? " +
+		             "and primary_dept in(select sd_id from specializes_in " +
+		             "where b_code in (select b_code from BodyParts where " +
+		             "b_code in(select bodypart from `patients_symptom_visit` " +
+		             "where pid in (select pid from patients where lname = ?) and visit_id = ?)));";
+		try {
+			PreparedStatement ps = connection.prepareStatement(sql);
+			ps.setString(1, GlobalConstants.globalLastName);
+			ps.setString(2, name);
+			ps.setLong(3, GlobalConstants.visitId);
+			ResultSet resultSet = ps.executeQuery();
+			while(resultSet.next())
+			{
+				return true;
+			}
+		}
+		catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }

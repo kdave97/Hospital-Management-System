@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author neelparikh
@@ -26,6 +28,24 @@ public class SeverityScaleService {
 			ResultSet rs = ps.executeQuery();
 			while( rs.next() ){
 				scale = rs.getString(1);
+			}
+		}
+		catch( SQLException e ) {
+			e.printStackTrace();
+		}
+		return scale;
+	}
+
+	public List<String> getAllSeverityScales(){
+		String sql = "Select value from Scale_type";
+		List<String> scale = new ArrayList<String>();
+		try {
+			PreparedStatement ps = connection.prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+
+			while( rs.next() ){
+				scale.add(rs.getString(1));
+
 			}
 		}
 		catch( SQLException e ) {

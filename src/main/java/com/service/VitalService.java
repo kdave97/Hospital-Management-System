@@ -22,6 +22,7 @@ public class VitalService implements VitalsI {
 			ps.setInt(1, vitals.getSystolic());
 			ps.setInt(2, vitals.getDiastolic());
 			ps.setInt(3, vitals.getTemperature());
+			ps.executeUpdate();
 			ResultSet generatedKeys = ps.getGeneratedKeys();
 			if(generatedKeys.next())
 				id = generatedKeys.getInt(1);

@@ -45,4 +45,31 @@ public class SymptomService implements SymptomI {
 		}
 		return symptoms;
 	}
+
+	public void addSymptom(String bCode, int severityId, Symptom symptom){
+
+		String sql = "Insert into Symptoms values(?,?)";
+		try {
+			PreparedStatement ps = connection.prepareStatement(sql);
+			ps.setString(1, symptom.getSymptomId());
+			ps.setString(2, symptom.getSymptomName());
+			ps.executeUpdate();
+			sql = "insert into associated values (?,?)";
+			ps = connection.prepareStatement(sql);
+			ps.setString(1, bCode);
+			ps.setString(2, symptom.getSymptomId());
+			ps.executeUpdate();
+
+			sql = "Insert into has_scale values(?,?)";
+			ps = connection.prepareStatement(sql);
+			ps.setInt(1, severityId);
+			ps.setString(2, symptom.getSymptomId());
+			ps.executeUpdate();
+		}
+		catch( SQLException e ) {
+			e.printStackTrace();
+		}
+
+	}
+
 }
