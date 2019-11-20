@@ -2,7 +2,6 @@ package com.service;
 
 import com.connection.MakeConnection;
 import com.models.Address;
-import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,9 +15,8 @@ import java.sql.SQLException;
 
 public class AddressService implements AddressI {
 	private Connection connection = MakeConnection.makeJDBCConnection();
-	private Logger logger = Logger.getLogger(MedicalFacilityService.class);
 	public void insertAddress(Address address, int pid) {
-		String sql = "Insert into Address(number, street, city, state, country, pid) values(?,?,?,?,?,?);";
+		String sql = "Insert into Address(house_number, street, city, state, country, pid) values(?,?,?,?,?,?)";
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
 			ps.setInt(1,address.getNumber());
@@ -32,11 +30,15 @@ public class AddressService implements AddressI {
 			{
 				System.out.println("There is an error while inserting row");
 			}
+			connection.close();
+
 
 		}
 		catch( SQLException e ) {
 			System.out.println("There was an error inserting address");
+			e.printStackTrace();
 		}
+
 
 
 	}

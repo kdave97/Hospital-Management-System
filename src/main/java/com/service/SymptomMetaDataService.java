@@ -36,12 +36,21 @@ public class SymptomMetaDataService implements SymptomMetaDataI{
 			e.printStackTrace();
 			System.out.println("There was an error processing query");
 		}
+		finally {
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
 		return response;
 	}
 
 	public void addSymptomMetaData(List<SymptomMetaData> symptomMetaDataList, int visitId){
 		String sql = "Insert into patients_symptom_visit(sym_id, visit_id, " +
-		             "severity, is_recurring, incident, pid, bodypart, duration) values(?,?,?,?,?,?,?,?)";
+		             "severity, is_recurring, incident, pid, bodypart, duration_period) values(?,?,?,?,?,?,?,?)";
 
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
@@ -57,11 +66,14 @@ public class SymptomMetaDataService implements SymptomMetaDataI{
 				int x = ps.executeUpdate();
 				System.out.println(x);
 			}
+			connection.close();
+
 
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 
 	}
 }

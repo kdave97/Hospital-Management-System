@@ -32,9 +32,12 @@ public class BodySymptomRuleService {
 				} else
 					System.out.println("Successful");
 			}
+			connection.close();
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 	}
 }

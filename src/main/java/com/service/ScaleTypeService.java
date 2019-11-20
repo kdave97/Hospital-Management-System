@@ -25,9 +25,11 @@ public class ScaleTypeService implements ScaleTypeI {
 				System.out.println("Successful");
 			else
 				System.out.println("Unsuccessful");
+			connection.close();
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 	}
 }

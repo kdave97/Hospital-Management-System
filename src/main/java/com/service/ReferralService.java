@@ -18,7 +18,8 @@ public class ReferralService {
 		             "(?,?)";
 		int key = 0;
 		try {
-			PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			String generatedColumns[] = { "referral_id" };
+			PreparedStatement ps = connection.prepareStatement(sql, generatedColumns);
 			ps.setInt(1, facilityId);
 			ps.setInt(2,referrerId);
 			ps.executeUpdate();
@@ -30,6 +31,15 @@ public class ReferralService {
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
+		}
+		finally {
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		return key;
 	}
@@ -43,11 +53,13 @@ public class ReferralService {
 			ps.setInt(1,expid);
 			ps.setInt(2,referralId);
 			ps.executeUpdate();
+			connection.close();
 
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 	}
 
 	public void insertReferralReason(int referralId, int reasonId, String serviceName){
@@ -59,9 +71,12 @@ public class ReferralService {
 			ps.setInt(2, reasonId);
 			ps.setString(3, serviceName);
 			ps.executeUpdate();
+			connection.close();
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+		
 	}
 }

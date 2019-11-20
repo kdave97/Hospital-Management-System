@@ -20,7 +20,7 @@ public class SeverityScaleService {
 	public String getSeverityScale(String symptomId)
 	{
 		String sql = "select value from Scale_type where scale_id = (select " +
-		             "scale_id from `has_scale` where sym_id = ?);";
+		             "scale_id from has_scale where sym_id = ?)";
 		String scale = "";
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
@@ -32,6 +32,15 @@ public class SeverityScaleService {
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
+		}
+		finally {
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		return scale;
 	}
@@ -47,10 +56,13 @@ public class SeverityScaleService {
 				scale.add(rs.getString(1));
 
 			}
+			connection.close();
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return scale;
 	}
 

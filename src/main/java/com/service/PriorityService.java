@@ -28,11 +28,12 @@ public class PriorityService {
 			ResultSet rs = ps.getGeneratedKeys();
 			if(rs.next())
 				key = rs.getInt(1);
-			connection.close();
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
+
 		return key;
 	}
 
@@ -51,10 +52,12 @@ public class PriorityService {
 				symptomMetaData.setSeverity(rs.getString(2));
 				symptomMetaDataList.add(symptomMetaData);
 			}
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return symptomMetaDataList;
 	}
 
@@ -67,81 +70,142 @@ public class PriorityService {
 			while(rs.next()){
 				ruleList.add(rs.getInt(1));
 			}
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return ruleList;
 	}
 	public void setPriority(int visitId){
-		List<SymptomMetaData> symptomMetaDataList = getSymptomsForVisit(visitId);
-		List<Integer> ruleIds = getDistinctRuleIds();
-		System.out.println(ruleIds);
-		String sql = "select b_code, sym_id, symbol, cmp_severity from body_symptom_rule where rule_id = ?";
-		String priority = "Normal";
-		try{
+		   List<SymptomMetaData> symptomMetaDataList = getSymptomsForVisit(visitId);
+		   List<Integer> ruleIds = getDistinctRuleIds();
+		   String sql = "select b_code, sym_id, symbol, cmp_severity from body_symptom_rule where rule_id = ?";
+		   String priority = "Normal";
+		   int biggerCount = 0;
+		   int macthedRuleId = 0;
+		   try{
 
-			PreparedStatement ps = connection.prepareStatement(sql);
-			for(int i =0; i<ruleIds.size(); i++){
-				ps.setInt(1,ruleIds.get(i));
-				ResultSet resultSet = ps.executeQuery();
-				System.out.println("*****************");
-				while( resultSet.next() ){
-/*					System.out.println(ruleIds.get(i));
-					System.out.print(resultSet.getString(1));
-					System.out.print(resultSet.getString(2));
-					System.out.print(resultSet.getString(3));
-					System.out.print(resultSet.getString(4));*/
-					for(int j = 0; j < symptomMetaDataList.size(); j++){
-						SymptomMetaData symptomMetaData = symptomMetaDataList.get(0);
-						int count = 0;
-						if(symptomMetaData.getBodyPart().equals(resultSet.getString(1)))
-						{
-							count++;
-						}
-						else
-						{
-							break;
-						}
-						if(symptomMetaData.getSymId().equals(resultSet.getString(2))){
-							count++;
-						}
-						else
-						{
-							break;
-						}
-						String severity = symptomMetaData.getSeverity();
-						try{
-							int x = Integer.parseInt(severity);
-						}
-						catch( Exception e ){
+		      PreparedStatement ps = connection.prepareStatement(sql);
+		      for(int i =0; i<ruleIds.size(); i++){
+		         ps.setInt(1,ruleIds.get(i));
+		         ResultSet resultSet = ps.executeQuery();
 
-						}
-						String symbol = resultSet.getString(3);
-						String sql1 = "Select value from scale_type where scale_id = (select scale_id from has_scale where sym_id = ?";
-						PreparedStatement statement = connection.prepareStatement(sql1);
-						ResultSet rss = statement.executeQuery();
-						String level = rss.getString(1);
-						String[] levels = level.split("/");
-						List<String> levelsList = Arrays.asList(levels);
-						int length = levels.length;
+		         while( resultSet.next() ){
+		            
+		            for(int j = 0; j < symptomMetaDataList.size(); j++){
+		            	int count = 0;
+		            	SymptomMetaData symptomMetaData = symptomMetaDataList.get(j);
 
-						if("<".equals(symbol)){
-							for(int k = 0; k<length; k++ ){
-								if(severity.equals(levels[k])){
+		               if(symptomMetaData.getBodyPart().equals(resultSet.getString(1)))
+		               {
+		                  count++;
+		               }
+		               else
+		               {
+		            	   break;
+		               }
+		               if(symptomMetaData.getSymId().equals(resultSet.getString(2))){
+		                  count++;
+		               }
+		               else
+		               {
+		            	   break;
+		               }
+		               String severity = symptomMetaData.getSeverity();
+		               String ruleSeverity = resultSet.getString(4);
+		               
+		               boolean flag = false;
+		               try{
+		                  int x = Integer.parseInt(severity);
+		                  String symbol = resultSet.getString(3);
+		                  int intSeverity = Integer.parseInt(ruleSeverity);
+		                  flag = true;
+		                  if("<".equals(symbol)){
+		                     if(x < intSeverity){
+		                        count++;
+		                     }
+		                  }
+		                  else if(">".equals(symbol)){
+		                     if(x > intSeverity)
+		                     {
+		                        count++;
+		                     }
+		                  }
+		                  else
+		                  {
+		                     if( x == intSeverity)
+		                     {
+		                        count++;
+		                     }
+		                  }
+		               }
+		               catch( Exception e ){
+		            	   	flag = false;
+		               }
 
-								}
-							}
-						}
-
-
-					}
+		               if(!flag) {
+		                  if( ruleSeverity.equals(severity) ) {
+		                     count++;
+		                  } else {
+		                     break;
+		                  }
+		               }
+		              if(count == 3)
+		            	  biggerCount++;
+		            }
+		            
+		            
+		         }
+		         macthedRuleId = ruleIds.get(i);
+		      }
+		      
+		   }
+		   catch( SQLException e ){
+		      e.printStackTrace();
+		   }
+		   if (biggerCount> 0)
+		   {
+			   String sql2 = "Select priority_id from rules where rule_id = ?";
+			   try {
+				PreparedStatement ps = connection.prepareStatement(sql2);
+				ps.setInt(1, macthedRuleId);
+				ResultSet rs = ps.executeQuery();
+				int priorityId = 0;
+				while(rs.next()) {
+					priorityId = rs.getInt(1);
 				}
-			}
+				String sql3 = "Select priority_level from priority where priority_id = ?";
+				 try {
+						ps = connection.prepareStatement(sql3);
+						ps.setInt(1, macthedRuleId);
+						rs = ps.executeQuery();
+						
+						while(rs.next()) {
+							priority = rs.getString(1);
+						}
 
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		   }catch (Exception e) {
+			// TODO: handle exception
 		}
-		catch( SQLException e ){
-			e.printStackTrace();
 		}
+		   String sql4 = "update patientvisit set priority = ? where visit_id = ?";
+		   
+			try {
+				PreparedStatement ps = connection.prepareStatement(sql4);
+				ps.setString(1, priority);
+				ps.setInt(2, visitId);
+				ps.executeUpdate();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 	}
 }

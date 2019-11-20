@@ -16,17 +16,21 @@ public class RuleService {
 		String sql = "insert into Rules(priority_id) values(?)";
 		int key = 0;
 		try {
-			PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			String generatedColumns[] = {"rule_id"};
+			PreparedStatement ps = connection.prepareStatement(sql, generatedColumns);
 			ps.setInt(1,priorityId);
 			int x = ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();
 			while( rs.next() ){
 				key = rs.getInt(1);
 			}
+			connection.close();
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return key;
 	}
 
@@ -37,11 +41,13 @@ public class RuleService {
 			ps.setInt(1, priorityId);
 			ps.setInt(2, ruleId);
 			ps.executeUpdate();
+			connection.close();
 
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 
 	}
 }

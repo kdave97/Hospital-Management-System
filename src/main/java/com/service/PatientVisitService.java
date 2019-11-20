@@ -19,8 +19,8 @@ public class PatientVisitService implements PatientVisitI {
 
 	private Connection connection = MakeConnection.makeJDBCConnection();
 	public boolean isCheckedIn(int pid, long facilityId) {
-		String sql = "select * from PatientVisit where pid = ? and facility_id = ? " +
-		             "and check_in IS NOT NULL and check_out IS NULL and phase = 0;";
+		String sql = "select * from PatientVisit where pid = ? and facility_id = ? and "
+				+ "check_in IS NOT NULL and check_out IS NULL and phase = 0";
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
 			ps.setInt(1,pid);
@@ -30,12 +30,12 @@ public class PatientVisitService implements PatientVisitI {
 			{
 				return true;
 			}
-			connection.close();
 		}
 		catch( SQLException e ) {
 			System.out.println("there was an error fetching data");
 			e.printStackTrace();
 		}
+
 		return false;
 
 	}
@@ -46,7 +46,8 @@ public class PatientVisitService implements PatientVisitI {
 		int key = 0;
 		ResultSet generatedKeys = null;
 		try {
-			PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			String generatedColumns[] = { "visit_id" };
+			PreparedStatement ps = connection.prepareStatement(sql, generatedColumns);
 			ps.setInt(1, patientVisit.getPhase());
 			ps.setDate(2, patientVisit.getCheckIn());
 			ps.setString(3, patientVisit.getPriority());
@@ -62,20 +63,20 @@ public class PatientVisitService implements PatientVisitI {
 					key = generatedKeys.getInt(1);
 				GlobalConstants.visitId = key;
 			}
-			connection.close();
 
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return key;
 	}
 
 	public List<String> getCheckedInPatients(String name){
 		String sql = "select lname from  patients where pid in(select pid from " +
-		             "patientvisit where phase = 0 and facility_id in " +
-		             "(select `facility_id` from `mf_service_dept` where(sd_id = " +
-		             "(select primary_dept from Staff where name = ?))));";
+		             "patientvisit where check_in IS NOT NULL and treatment_start IS NULL and facility_id in " +
+		             "(select facility_id from mf_service_dept where(sd_id = " +
+		             "(select primary_dept from Staff where name = ?))))";
 		List<String> pids = new ArrayList<String>();
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
@@ -85,10 +86,12 @@ public class PatientVisitService implements PatientVisitI {
 			{
 				pids.add(rs.getString(1));
 			}
+			connection.close();
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return pids;
 	}
 
@@ -100,7 +103,6 @@ public class PatientVisitService implements PatientVisitI {
 			ps.setLong(1,vitalId);
 			ps.setString(2,lname);
 			int x = ps.executeUpdate();
-
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
@@ -114,18 +116,18 @@ public class PatientVisitService implements PatientVisitI {
 			sql = "update PatientVisit set check_out = ?, phase = ? where pid = (select pid from patients" +
 			      " where lname = ?) and facility_id = (select " +
 			      "facility_id from mf_service_dept where sd_id = (select " +
-			      "primary_dept from Staff where name = ?));";
+			      "primary_dept from Staff where name = ?))";
 		}
 		else if(phase == 2){
 			sql = "update PatientVisit set treatment_start = ?, phase = ? where pid = (select pid from patients" +
 			      " where lname = ?) and facility_id = (select " +
 			      "facility_id from mf_service_dept where sd_id = (select " +
-			      "primary_dept from Staff where name = ?));";
+			      "primary_dept from Staff where name = ?))";
 		}
 		else if (phase == 3){
 			sql = "update PatientVisit set discharge_time = ?, phase = ? where visit_id = ? and facility_id = (select " +
 			      "facility_id from mf_service_dept where sd_id = (select " +
-			      "primary_dept from Staff where name = ?));";
+			      "primary_dept from Staff where name = ?))";
 		}
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
@@ -137,11 +139,11 @@ public class PatientVisitService implements PatientVisitI {
 				ps.setString(3,lname);
 			ps.setString(4, GlobalConstants.globalLastName);
 			int x = ps.executeUpdate();
-
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 
 	}
 
@@ -150,7 +152,7 @@ public class PatientVisitService implements PatientVisitI {
 		String sql = "select lname from patients where pid = (select Distinct" +
 		             "(pid) from PatientVisit where phase = 2 and exp_id IS NULL and facility_id " +
 		             "= (select facility_id from mf_service_dept where sd_id =" +
-		             " (select primary_dept from Staff where name = ?)));";
+		             " (select primary_dept from Staff where name = ?)))";
 
 		List<String> patients = new ArrayList<String>();
 		try {
@@ -163,11 +165,12 @@ public class PatientVisitService implements PatientVisitI {
 				patients.add(rs.getString(1));
 			}
 
-
+			connection.close();
 
 		}catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return patients;
 	}
 
@@ -176,7 +179,7 @@ public class PatientVisitService implements PatientVisitI {
 		String sql = "select visit_id from PatientVisit where phase = 2 and facility_id = " +
 		              "(select facility_id from mf_service_dept where sd_id = " +
 		              "(select primary_dept from Staff where name = ?)) " +
-		              "and pid = (select pid from Patients where lname = ?);";
+		              "and pid = (select pid from Patients where lname = ?)";
 		PreparedStatement ps = null;
 		int key = 0;
 		try {
@@ -188,10 +191,12 @@ public class PatientVisitService implements PatientVisitI {
 			{
 				key = rs.getInt(1);
 			}
+			connection.close();
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return key;
 	}
 
@@ -202,13 +207,15 @@ public class PatientVisitService implements PatientVisitI {
 			ps.setInt(1, expId);
 			ps.setLong(2,GlobalConstants.visitId);
 			ps.executeUpdate();
-
+			connection.close();
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+		
 
 	}
+	
 
 
 }

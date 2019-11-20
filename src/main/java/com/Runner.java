@@ -94,8 +94,6 @@ public class Runner {
 		                                                   ()), "Raleigh"));
 */
 		home();
-//		new PriorityService().setPriority(13);
-//		SignUp();
 
 
 	}
@@ -117,14 +115,58 @@ public class Runner {
 			case 2:
 				SignUp();
 				break;
-	        case 3: DemoQueries();
-	                break;
+		/*
+		 * case 3: PatientAcknowledgement(); break;
+		 */
+//	        case 3: DemoQueries();
+//	                break;
 			case 4:
 				home();
 				break;
 		}
 
 	}
+
+	private static void PatientAcknowledgement() {
+		// TODO Auto-generated method stub
+		PatientService patientService = new PatientService();
+		Experience experience = patientService.getPatientExperience(GlobalConstants.globalPid);
+		System.out.println("Discharge Status:\t" + experience.getDischargeStatus());
+		System.out.println("Treatment Given:\t" + experience.getTreatmentGiven());
+		if(experience.getNegativeExperience() == 1) {
+			System.out.println("Negative Experience: Misdiagnosis");
+		}
+		else if(experience.getNegativeExperience() == 2) {
+			System.out.println("Negative Experience: Patient acquired an infection during hospital stay.");
+		}
+		int expId = experience.getExpId();
+		System.out.println("Negative Experience Description:" + experience.getNegativeExperienceDescription());
+		if("Referred".equals(experience.getDischargeStatus())){
+			
+			Referral referral = patientService.getReferral(GlobalConstants.globalPid, expId);
+			System.out.println("FacilityID:\t"+ referral.getFacilityId());
+			System.out.println("ReferrerId:\t" + referral.getReferrerId());
+		}
+		
+
+		System.out.println("Do you acknowledge?");
+		System.out.println("1) Yes 2) No 3) Go back");
+		System.out.println("Select a choice");
+
+		int choice = sc.nextInt();
+		
+		if(choice == 1) {
+			new ExperienceService().acknowledgemenntUpdate(expId, "");
+		}
+		else {
+			sc.nextLine();
+			String reason = sc.nextLine();
+			new ExperienceService().acknowledgemenntUpdate(expId, reason);
+		}
+		patientRouting();
+		
+	}
+
 
 	public static void DemoQueries() {
 
@@ -373,7 +415,7 @@ public class Runner {
 		String resp = sc.nextLine();
 		List<BodySymptomRule> bodySymptomRules =
 				new ArrayList<BodySymptomRule>();
-		int ruleId = new RuleService().insertRule(0);
+		int ruleId = new RuleService().insertRule(1);
 		while( ! ("d").equals(resp) ) {
 			BodySymptomRule bodySymptomRule = new BodySymptomRule();
 			try {
@@ -409,10 +451,10 @@ public class Runner {
 			resp = sc.nextLine();
 		}
 		new BodySymptomRuleService().insertAssessmentRule(bodySymptomRules);
-		System.out.println("enter priority for the rules");
-		String priority = sc.nextLine();
-		int priorityId = new PriorityService().addPriority(priority);
+		System.out.println("enter priorityId1 for the rules");
+		int priorityId = sc.nextInt();
 		new RuleService().updatePriorityId(priorityId, ruleId);
+		Staffmenu();
 
 	}
 
@@ -449,6 +491,7 @@ public class Runner {
 				Staffmenu();
 				break;
 		}
+		Staffmenu();
 	}
 
 	public static void addSeve(String finalScale) {
@@ -488,6 +531,11 @@ public class Runner {
 		Connection connection = MakeConnection.makeJDBCConnection();
 		List<String> lnames =
 				new PatientVisitService().getCheckedInPatients(GlobalConstants.globalLastName);
+		if(lnames.size() == 0)
+		{
+			System.out.println("No patients are currently self-checked in");
+		}
+		else {
 		Map<Integer, String> patients = new HashMap<Integer, String>();
 		int count = 1;
 		for( String lname : lnames ) {
@@ -518,13 +566,12 @@ public class Runner {
 				Staffmenu();
 				break;
 		}
+		}
 	}
 
 	public static void TreatPatient(String lname) {
 
 		boolean isAllowed = new StaffService().isAllowed(lname);
-		System.out.println(GlobalConstants.globalLastName);
-		System.out.println(isAllowed);
 
 		// do logic to move patient to treated list
 		StaffService staffService = new StaffService();
@@ -564,6 +611,7 @@ public class Runner {
 				Calendar calendar = Calendar.getInstance();
 				Date date = new Date(new java.util.Date().getTime());
 				patientVisit.updateCheckOut(date, lname, 1);
+				new PriorityService().setPriority((int) GlobalConstants.visitId);
 				Staffmenu();
 				break;
 			case 2:
@@ -585,7 +633,7 @@ public class Runner {
 				CheckIn();
 				break;
 			case 2:
-				PatientCheckout();
+				PatientAcknowledgement();
 				break;
 			case 3:
 				SignIn_disp();

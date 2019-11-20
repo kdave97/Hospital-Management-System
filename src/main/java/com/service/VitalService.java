@@ -18,7 +18,8 @@ public class VitalService implements VitalsI {
 		String sql = "insert into vitals(systolic, diastolic, temperature) values (?, ?, ?)";
 		int id = 0;
 		try {
-			PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			String generatedColumns[] = { "vital_id" };
+			PreparedStatement ps = connection.prepareStatement(sql, generatedColumns);
 			ps.setInt(1, vitals.getSystolic());
 			ps.setInt(2, vitals.getDiastolic());
 			ps.setInt(3, vitals.getTemperature());
@@ -26,11 +27,14 @@ public class VitalService implements VitalsI {
 			ResultSet generatedKeys = ps.getGeneratedKeys();
 			if(generatedKeys.next())
 				id = generatedKeys.getInt(1);
+			connection.close();
+
 
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return id;
 	}
 }

@@ -17,7 +17,7 @@ public class StaffService implements StaffI {
 
 
 	public boolean getStaff(String name, Date date) {
-
+		System.out.print(date.toString());
 		String sql = "Select name, DOB from Staff where name = ? and DOB = ?";
 		try {
 			PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -39,6 +39,7 @@ public class StaffService implements StaffI {
 			e.printStackTrace();
 		}
 
+
 		return false;
 	}
 
@@ -47,8 +48,8 @@ public class StaffService implements StaffI {
 		String sql = "select count(*) from Staff where name = ? " +
 		             "and primary_dept in(select sd_id from specializes_in " +
 		             "where b_code in (select b_code from BodyParts where " +
-		             "b_code in(select bodypart from `patients_symptom_visit` " +
-		             "where pid in (select pid from patients where lname = ?) and visit_id = ?)));";
+		             "b_code in(select bodypart from patients_symptom_visit " +
+		             "where pid in (select pid from patients where lname = ?) and visit_id = ?)))";
 		try {
 			PreparedStatement ps = connection.prepareStatement(sql);
 			ps.setString(1, GlobalConstants.globalLastName);
@@ -59,10 +60,13 @@ public class StaffService implements StaffI {
 			{
 				return true;
 			}
+			connection.close();
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 		return false;
 	}
 }

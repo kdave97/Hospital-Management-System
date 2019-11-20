@@ -53,7 +53,6 @@ public class SymptomService implements SymptomI {
 			PreparedStatement ps = connection.prepareStatement(sql);
 			ps.setString(1, symptom.getSymptomId());
 			ps.setString(2, symptom.getSymptomName());
-			ps.executeUpdate();
 			sql = "insert into associated values (?,?)";
 			ps = connection.prepareStatement(sql);
 			ps.setString(1, bCode);
@@ -65,10 +64,13 @@ public class SymptomService implements SymptomI {
 			ps.setInt(1, severityId);
 			ps.setString(2, symptom.getSymptomId());
 			ps.executeUpdate();
+			connection.close();
+
 		}
 		catch( SQLException e ) {
 			e.printStackTrace();
 		}
+
 
 	}
 
