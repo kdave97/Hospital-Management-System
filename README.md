@@ -1,1 +1,1 @@
-# DBMS
+# Hospital Management System
